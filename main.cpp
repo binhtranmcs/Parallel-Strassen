@@ -3,22 +3,22 @@
 #include "mpi_strassen.hpp"
 
 
-void check_correctness(int* A, int* B, int* C, int n, int m, int p) {
-    int* E = new_matrix(n, p);
+void check_correctness(int** A, int** B, int** C, int n, int m, int p) {
+    int **E = new_matrix(n, p);
     matrix_multiply(A, B, E, n, m, p);
     for (int r = 0; r < n; ++r) {
-        for (int c = p; c < p; ++c) {
-            if (get(C, r, c) != get(E, r, c)) {
+        for (int c = 0; c < p; ++c) {
+            if (C[r][c] != E[r][c]) {
                 std::cout << "INCORRECT\n";
                 std::cout << r << ' ' << c << '\n';
-                std::cout << get(C, r, c) << ' ' << get(E, r, c) << '\n';
+                std::cout << C[r][c] << ' ' << E[r][c] << '\n';
             }
         }
     }
     std::cout << "CORRECT\n";
 }
 
-void load_matrix(int* &A, int* &B, int* &C, int &n, int &m, int &p, int rank) {
+void load_matrix(int** &A, int** &B, int** &C, int &n, int &m, int &p, int rank) {
     std::fstream fin;
     fin.open("gen_input.txt", std::ios::in);
     fin >> n >> m >> p;
@@ -28,17 +28,14 @@ void load_matrix(int* &A, int* &B, int* &C, int &n, int &m, int &p, int rank) {
         B = new_matrix(m, p);
         C = new_matrix(n, p);
 
-        int tmp;
         for (int r = 0; r < n; ++r) {
             for (int c = 0; c < m; ++c) {
-                fin >> tmp;
-                set(A, r, c, tmp);
+                fin >> A[r][c];
             }
         }
         for (int r = 0; r < m; ++r) {
             for (int c = 0; c < p; ++c) {
-                fin >> tmp;
-                set(B, r, c, tmp);
+                fin >> B[r][c];
             }
         }
     }
@@ -64,7 +61,7 @@ int main(int argc, char* argv[]) {
     omp_set_num_threads(24);
 
     // init input matrix
-    int *A, *B, *C;
+    int **A, **B, **C;
     int n, m, p;
     load_matrix(A, B, C, n, m, p, rank);
 
@@ -74,7 +71,6 @@ int main(int argc, char* argv[]) {
     double end = MPI_Wtime();
 
     if (rank == 0) {
-        check_correctness(A, B, C, n, m, p);
         std::ofstream fout;
         fout.open("output.txt", std::ofstream::app);
         fout << "mpi_omp " << n << ' ' << m << ' ' << p << ": " << end - begin << '\n';

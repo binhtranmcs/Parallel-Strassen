@@ -5,7 +5,7 @@
 
 const int THRESHOLD = 64;
 
-void omp_strassen(int *A, int *B, int *C, int n, int m, int p) {
+void omp_strassen(int** A, int ** B, int** C, int n, int m, int p) {
     if (std::max(n, std::max(m, p)) <= THRESHOLD) {
         matrix_multiply(A, B, C, n, m, p);
         return;
@@ -13,42 +13,42 @@ void omp_strassen(int *A, int *B, int *C, int n, int m, int p) {
 
     int n1 = (n + 1) / 2, m1 = (m + 1) / 2, p1 = (p + 1) / 2;
 
-    int *A11 = new_matrix(n1, m1);
+    int **A11 = new_matrix(n1, m1);
     init_sub_matrix(A, A11, n, m, 0, 0);
-    int *A12 = new_matrix(n1, m1);
+    int **A12 = new_matrix(n1, m1);
     init_sub_matrix(A, A12, n, m, 0, m1);
-    int *A21 = new_matrix(n1, m1);
+    int **A21 = new_matrix(n1, m1);
     init_sub_matrix(A, A21, n, m, n1, 0);
-    int *A22 = new_matrix(n1, m1);
+    int **A22 = new_matrix(n1, m1);
     init_sub_matrix(A, A22, n, m, n1, m1);
 
-    int *B11 = new_matrix(m1, p1);
+    int **B11 = new_matrix(m1, p1);
     init_sub_matrix(B, B11, m, p, 0, 0);
-    int *B12 = new_matrix(m1, p1);
+    int **B12 = new_matrix(m1, p1);
     init_sub_matrix(B, B12, m, p, 0, p1);
-    int *B21 = new_matrix(m1, p1);
+    int **B21 = new_matrix(m1, p1);
     init_sub_matrix(B, B21, m, p, m1, 0);
-    int *B22 = new_matrix(m1, p1);
+    int **B22 = new_matrix(m1, p1);
     init_sub_matrix(B, B22, m, p, m1, p1);
 
-    int *M11 = new_matrix(n1, m1);
-    int *M12 = new_matrix(m1, p1);
-    int *M21 = new_matrix(n1, m1);
-    int *M32 = new_matrix(m1, p1);
-    int *M42 = new_matrix(m1, p1);
-    int *M51 = new_matrix(n1, m1);
-    int *M61 = new_matrix(n1, m1);
-    int *M62 = new_matrix(m1, p1);
-    int *M71 = new_matrix(n1, m1);
-    int *M72 = new_matrix(m1, p1);
+    int **M11 = new_matrix(n1, m1);
+    int **M12 = new_matrix(m1, p1);
+    int **M21 = new_matrix(n1, m1);
+    int **M32 = new_matrix(m1, p1);
+    int **M42 = new_matrix(m1, p1);
+    int **M51 = new_matrix(n1, m1);
+    int **M61 = new_matrix(n1, m1);
+    int **M62 = new_matrix(m1, p1);
+    int **M71 = new_matrix(n1, m1);
+    int **M72 = new_matrix(m1, p1);
 
-    int *M1 = new_matrix(n1, p1);
-    int *M2 = new_matrix(n1, p1);
-    int *M3 = new_matrix(n1, p1);
-    int *M4 = new_matrix(n1, p1);
-    int *M5 = new_matrix(n1, p1);
-    int *M6 = new_matrix(n1, p1);
-    int *M7 = new_matrix(n1, p1);
+    int **M1 = new_matrix(n1, p1);
+    int **M2 = new_matrix(n1, p1);
+    int **M3 = new_matrix(n1, p1);
+    int **M4 = new_matrix(n1, p1);
+    int **M5 = new_matrix(n1, p1);
+    int **M6 = new_matrix(n1, p1);
+    int **M7 = new_matrix(n1, p1);
 
 #pragma omp parallel
 {
@@ -116,15 +116,11 @@ void omp_strassen(int *A, int *B, int *C, int n, int m, int p) {
 
     for (int i = 0; i < n1; ++i) {
         for (int j = 0; j < p1; ++j) {
-            int tmp = get(M1, i, j) + get(M4, i, j) - get(M5, i, j) + get(M7, i, j);
-            set(C, i, j, tmp);
-            if (p1 + j < p) set(C, i, p1 + j, get(M3, i, j) + get(M5, i, j));
+            C[i][j] = M1[i][j] + M4[i][j] - M5[i][j] + M7[i][j];
+            if (p1 + j < p) C[i][p1 + j] = M3[i][j] + M5[i][j];
             if (n1 + i < n) {
-                set(C, n1 + i, j, get(M2, i, j) + get(M4, i, j));
-                if (p1 + j < p) {
-                    int tmp = get(M1, i, j) - get(M2, i, j) + get(M3, i, j) + get(M6, i, j);
-                    set(C, n1 + i, p1 + j, tmp);
-                }
+                C[n1 + i][j] = M2[i][j] + M4[i][j];
+                if (p1 + j < p) C[n1 + i][p1 + j] = M1[i][j] - M2[i][j] + M3[i][j] + M6[i][j];
             }
         }
     }
