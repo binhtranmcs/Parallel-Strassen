@@ -8,7 +8,7 @@ gen_test:
 	./gen_test.o $N $M $P
 	rm gen_test.o
 
-tmp:
-	mpic++ tmp.cpp -o tmp.o
-	mpirun -np $(PROC) ./tmp.o # --hostfile hostfile
-	rm tmp.o
+test:
+	mpic++ -fopenmp test.cpp -o test.o
+	mpirun -n 4 ./test.o # --hostfile hostfile
+	rm test.o

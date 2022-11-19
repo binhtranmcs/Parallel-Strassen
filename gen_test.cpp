@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
     }
 
     std::ofstream fout;
-    fout.open ("gen_input.txt", std::ofstream::app);
+    fout.open ("gen_input.txt", std::ofstream::out | std::ofstream::trunc);
 
     const int MAX = 1e3;
 

@@ -101,45 +101,58 @@ void strassen(int** A, int ** B, int** C, int n, int m, int p) {
     int **M6 = new_matrix(n1, p1);
     int **M7 = new_matrix(n1, p1);
 
-#pragma omp task
+#pragma omp parallel
 {
+#pragma omp single
+{
+#pragma omp task untied
+{
+    // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_add(A11, A22, M11, n1, m1);
     matrix_add(B11, B22, M12, m1, p1);
     strassen(M11, M12, M1, n1, m1, p1);
 }
-#pragma omp task
+#pragma omp task untied
 {
+    // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_add(A21, A22, M21, n1, m1);
     strassen(M21, B11, M2, n1, m1, p1);
 }
-#pragma omp task
+#pragma omp task untied
 {
+    // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_sub(B12, B22, M32, m1, p1);
     strassen(A11, M32, M3, n1, m1, p1);
 }
 #pragma omp task
 {
+    // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_sub(B21, B11, M42, m1, p1);
     strassen(A22, M42, M4, n1, m1, p1);
 }
 #pragma omp task
 {
+    // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_add(A11, A12, M51, n1, m1);
     strassen(M51, B22, M5, n1, m1, p1);
 }
 #pragma omp task
 {
+    // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_sub(A21, A11, M61, n1, m1);
     matrix_add(B11, B12, M62, m1, p1);
     strassen(M61, M62, M6, n1, m1, p1);
 }
 #pragma omp task
 {
+    // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_sub(A12, A22, M71, n1, m1);
     matrix_add(B21, B22, M72, m1, p1);
     strassen(M71, M72, M7, n1, m1, p1);
 }
 #pragma omp taskwait
+} // omp single
+} // omp parallel
 
     // matrix_print(A, n, m);
     // matrix_print(B, m, p);
@@ -237,7 +250,7 @@ int main(int argc, char** argv) {
     int **c = new_matrix(n, p);
 
     omp_set_dynamic(0);
-    omp_set_num_threads(8);
+    omp_set_num_threads(24);
     
     double begin = omp_get_wtime();
 
