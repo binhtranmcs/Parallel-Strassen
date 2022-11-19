@@ -9,6 +9,6 @@ gen_test:
 	rm gen_test.o
 
 omp:
-	mpic++ -fopenmp omp.cpp -o omp.o
+	g++ -fopenmp omp.cpp -o omp.o
 	./omp.o
 	rm omp.o

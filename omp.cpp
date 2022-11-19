@@ -1,6 +1,6 @@
 #include "bits/stdc++.h"
 #include <omp.h>
-#include <mpi.h>
+
 
 const int THRESHOLD = 64;
 
