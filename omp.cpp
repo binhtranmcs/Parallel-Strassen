@@ -259,7 +259,7 @@ int main(int argc, char** argv) {
 
     double end = omp_get_wtime();
 
-    fout << end - begin << '\n'; // still need to improve
+    fout << "omp " << n << ' ' << m << ' ' << p << ": " << end - begin << '\n';
 
     check_correctness(a, b, c, n, m, p);
 
