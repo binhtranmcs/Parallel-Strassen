@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
     std::ofstream fout;
     fout.open ("gen_input.txt", std::ofstream::out | std::ofstream::trunc);
 
-    const int MAX = 1e3;
+    const int MAX = 1e2;
 
     int n = std::atoi(argv[1]);
     int m = std::atoi(argv[2]);
@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
 
     fout << n << ' ' << m << ' ' << p << '\n';
 
+    srand(time(0));
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) fout << rand() % MAX << " \n"[j == m - 1];
     }
