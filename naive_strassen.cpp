@@ -177,7 +177,7 @@ int main() {
     elapsed_seconds = duration_cast<microseconds> (end - start).count() * pow(10, -6);
     fout << "naive " << n << ' ' << m << ' ' << p << ": " << elapsed_seconds << '\n';
     
-    check_correctness(a, b, c, n, m, p);
+    // check_correctness(a, b, c, n, m, p);
     fout.close();
 
     return 0;

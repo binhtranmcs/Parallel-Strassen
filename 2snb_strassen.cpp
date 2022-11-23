@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
         fout.open("output.txt", std::ofstream::app);
         fout << "mpi_2snb_omp " << n << ' ' << m << ' ' << p << ": " << end - begin << '\n';
         fout.close();
-        check_correctness(A, B, C, n, m, p);
+        // check_correctness(A, B, C, n, m, p);
     }
 
     MPI_Finalize();

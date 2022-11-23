@@ -31,3 +31,6 @@ naive:
 	g++ -std=c++11 naive_strassen.cpp -o naive_strassen.o
 	./naive_strassen.o
 	rm naive_strassen.o
+
+clean:
+	rm *.o

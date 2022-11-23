@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 
     fout << "omp " << n << ' ' << m << ' ' << p << ": " << end - begin << '\n';
 
-    check_correctness(a, b, c, n, m, p);
+    // check_correctness(a, b, c, n, m, p);
 
     // for (int i = 0; i < n; ++i) {
     //     for (int j = 0; j < p; ++j) fout << c[i][j] << ' ';

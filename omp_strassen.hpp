@@ -5,7 +5,7 @@
 
 const int THRESHOLD = 64;
 
-void omp_strassen(int** A, int ** B, int** C, int n, int m, int p) {
+void omp_strassen_util(int** A, int ** B, int** C, int n, int m, int p) {
     if (std::max(n, std::max(m, p)) <= THRESHOLD) {
         matrix_multiply(A, B, C, n, m, p);
         return;
@@ -50,58 +50,53 @@ void omp_strassen(int** A, int ** B, int** C, int n, int m, int p) {
     int **M6 = new_matrix(n1, p1);
     int **M7 = new_matrix(n1, p1);
 
-#pragma omp parallel
-{
-#pragma omp single
-{
+
 #pragma omp task untied
 {
     // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_add(A11, A22, M11, n1, m1);
     matrix_add(B11, B22, M12, m1, p1);
-    omp_strassen(M11, M12, M1, n1, m1, p1);
+    omp_strassen_util(M11, M12, M1, n1, m1, p1);
 }
 #pragma omp task untied
 {
     // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_add(A21, A22, M21, n1, m1);
-    omp_strassen(M21, B11, M2, n1, m1, p1);
+    omp_strassen_util(M21, B11, M2, n1, m1, p1);
 }
 #pragma omp task untied
 {
     // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_sub(B12, B22, M32, m1, p1);
-    omp_strassen(A11, M32, M3, n1, m1, p1);
+    omp_strassen_util(A11, M32, M3, n1, m1, p1);
 }
 #pragma omp task
 {
     // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_sub(B21, B11, M42, m1, p1);
-    omp_strassen(A22, M42, M4, n1, m1, p1);
+    omp_strassen_util(A22, M42, M4, n1, m1, p1);
 }
 #pragma omp task
 {
     // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_add(A11, A12, M51, n1, m1);
-    omp_strassen(M51, B22, M5, n1, m1, p1);
+    omp_strassen_util(M51, B22, M5, n1, m1, p1);
 }
 #pragma omp task
 {
     // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_sub(A21, A11, M61, n1, m1);
     matrix_add(B11, B12, M62, m1, p1);
-    omp_strassen(M61, M62, M6, n1, m1, p1);
+    omp_strassen_util(M61, M62, M6, n1, m1, p1);
 }
 #pragma omp task
 {
     // printf("thread num: %d out of %d\n", omp_get_thread_num(), omp_get_max_threads());
     matrix_sub(A12, A22, M71, n1, m1);
     matrix_add(B21, B22, M72, m1, p1);
-    omp_strassen(M71, M72, M7, n1, m1, p1);
+    omp_strassen_util(M71, M72, M7, n1, m1, p1);
 }
 #pragma omp taskwait
-} // omp single
-} // omp parallel
 
     // matrix_print(A, n, m);
     // matrix_print(B, m, p);
@@ -153,4 +148,14 @@ void omp_strassen(int** A, int ** B, int** C, int n, int m, int p) {
     delete_matrix(M5);
     delete_matrix(M6);
     delete_matrix(M7);
+}
+
+inline void omp_strassen(int** A, int ** B, int** C, int n, int m, int p) {
+#pragma omp parallel
+{
+#pragma omp single
+{
+    omp_strassen_util(A, B, C, n, m, p);
+} // omp single
+} // omp parallel
 }

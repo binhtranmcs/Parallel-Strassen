@@ -7,77 +7,60 @@ void mpi_strassen(int **A, int **B, int **C, int n, int m, int p, int rank) {
     int n1 = (n + 1) / 2, m1 = (m + 1) / 2, p1 = (p + 1) / 2;
 
 
-    // divide matrix A into 4 submatrix
+    // divide matrix A and B into 4 submatrix
     int **A11 = new_matrix(n1, m1);
-    if (rank == 0) init_sub_matrix(A, A11, n, m, 0, 0);
-    MPI_Win win_A11;
-    MPI_Win_create(&A11[0][0], sizeof(int) * (n1 * m1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_A11);
-
     int **A12 = new_matrix(n1, m1);
-    if (rank == 0) init_sub_matrix(A, A12, n, m, 0, m1);
-    MPI_Win win_A12;
-    MPI_Win_create(&A12[0][0], sizeof(int) * (n1 * m1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_A12);
-
     int **A21 = new_matrix(n1, m1);
-    if (rank == 0) init_sub_matrix(A, A21, n, m, n1, 0);
-    MPI_Win win_A21;
-    MPI_Win_create(&A21[0][0], sizeof(int) * (n1 * m1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_A21);
-
     int **A22 = new_matrix(n1, m1);
-    if (rank == 0) init_sub_matrix(A, A22, n, m, n1, m1);
-    MPI_Win win_A22;
+
+    int **B11 = new_matrix(m1, p1);
+    int **B12 = new_matrix(m1, p1);
+    int **B21 = new_matrix(m1, p1);
+    int **B22 = new_matrix(m1, p1);
+
+    if (rank == 0) {
+        init_sub_matrix(A, A11, n, m, 0, 0);
+        init_sub_matrix(A, A12, n, m, 0, m1);
+        init_sub_matrix(A, A21, n, m, n1, 0);
+        init_sub_matrix(A, A22, n, m, n1, m1);
+
+        init_sub_matrix(B, B11, m, p, 0, 0);
+        init_sub_matrix(B, B12, m, p, 0, p1);
+        init_sub_matrix(B, B21, m, p, m1, 0);
+        init_sub_matrix(B, B22, m, p, m1, p1);
+    }
+
+    // create mpi windows
+    MPI_Win win_A11, win_A12, win_A21, win_A22, win_B11, win_B12, win_B21, win_B22;
+
+    MPI_Win_create(&A11[0][0], sizeof(int) * (n1 * m1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_A11);
+    MPI_Win_create(&A12[0][0], sizeof(int) * (n1 * m1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_A12);
+    MPI_Win_create(&A21[0][0], sizeof(int) * (n1 * m1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_A21);
     MPI_Win_create(&A22[0][0], sizeof(int) * (n1 * m1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_A22);
 
-
-    // divide matrix A into 4 submatrix
-    int **B11 = new_matrix(m1, p1);
-    if (rank == 0) init_sub_matrix(B, B11, m, p, 0, 0);
-    MPI_Win win_B11;
     MPI_Win_create(&B11[0][0], sizeof(int) * (m1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_B11);
-
-    int **B12 = new_matrix(m1, p1);
-    if (rank == 0) init_sub_matrix(B, B12, m, p, 0, p1);
-    MPI_Win win_B12;
     MPI_Win_create(&B12[0][0], sizeof(int) * (m1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_B12);
-
-    int **B21 = new_matrix(m1, p1);
-    if (rank == 0) init_sub_matrix(B, B21, m, p, m1, 0);
-    MPI_Win win_B21;
     MPI_Win_create(&B21[0][0], sizeof(int) * (m1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_B21);
-
-    int **B22 = new_matrix(m1, p1);
-    if (rank == 0) init_sub_matrix(B, B22, m, p, m1, p1);
-    MPI_Win win_B22;
     MPI_Win_create(&B22[0][0], sizeof(int) * (m1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_B22);
 
 
     // 7 submatrix results after running strassen
     int **M1 = new_matrix(n1, p1);
-    MPI_Win win_M1;
-    MPI_Win_create(&M1[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M1);
-    
     int **M2 = new_matrix(n1, p1);
-    MPI_Win win_M2;
-    MPI_Win_create(&M2[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M2);
-    
     int **M3 = new_matrix(n1, p1);
-    MPI_Win win_M3;
-    MPI_Win_create(&M3[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M3);
-    
     int **M4 = new_matrix(n1, p1);
-    MPI_Win win_M4;
-    MPI_Win_create(&M4[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M4);
-    
     int **M5 = new_matrix(n1, p1);
-    MPI_Win win_M5;
-    MPI_Win_create(&M5[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M5);
-    
     int **M6 = new_matrix(n1, p1);
-    MPI_Win win_M6;
-    MPI_Win_create(&M6[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M6);
-    
     int **M7 = new_matrix(n1, p1);
-    MPI_Win win_M7;
+
+    MPI_Win win_M1, win_M2, win_M3, win_M4, win_M5, win_M6, win_M7;
+    
+    MPI_Win_create(&M1[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M1);
+    MPI_Win_create(&M2[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M2);
+    MPI_Win_create(&M3[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M3);
+    MPI_Win_create(&M4[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M4);
+    MPI_Win_create(&M5[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M5);
+    MPI_Win_create(&M6[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M6);
     MPI_Win_create(&M7[0][0], sizeof(int) * (n1 * p1), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win_M7);
 
 
@@ -94,11 +77,11 @@ void mpi_strassen(int **A, int **B, int **C, int n, int m, int p, int rank) {
         int a_sub_size = n1 * m1;
         int b_sub_size = m1 * p1;
         
-        // send to machine 0 to process
-        MPI_Put(&A11[0][0], a_sub_size, MPI_INT, 0, 0, a_sub_size, MPI_INT, win_A11);
-        MPI_Put(&A22[0][0], a_sub_size, MPI_INT, 0, 0, a_sub_size, MPI_INT, win_A22);
-        MPI_Put(&B11[0][0], b_sub_size, MPI_INT, 0, 0, b_sub_size, MPI_INT, win_B11);
-        MPI_Put(&B22[0][0], b_sub_size, MPI_INT, 0, 0, b_sub_size, MPI_INT, win_B22);
+        // // send to machine 0 to process
+        // MPI_Put(&A11[0][0], a_sub_size, MPI_INT, 0, 0, a_sub_size, MPI_INT, win_A11);
+        // MPI_Put(&A22[0][0], a_sub_size, MPI_INT, 0, 0, a_sub_size, MPI_INT, win_A22);
+        // MPI_Put(&B11[0][0], b_sub_size, MPI_INT, 0, 0, b_sub_size, MPI_INT, win_B11);
+        // MPI_Put(&B22[0][0], b_sub_size, MPI_INT, 0, 0, b_sub_size, MPI_INT, win_B22);
 
         // send to machine 1 to process
         MPI_Put(&A21[0][0], a_sub_size, MPI_INT, 1, 0, a_sub_size, MPI_INT, win_A21);
@@ -147,7 +130,7 @@ void mpi_strassen(int **A, int **B, int **C, int n, int m, int p, int rank) {
         matrix_add(A11, A22, M11, n1, m1);
         matrix_add(B11, B22, M12, m1, p1);
         omp_strassen(M11, M12, M1, n1, m1, p1);
-        MPI_Put(&M1[0][0], c_sub_size, MPI_INT, 0, 0, c_sub_size, MPI_INT, win_M1);
+        // MPI_Put(&M1[0][0], c_sub_size, MPI_INT, 0, 0, c_sub_size, MPI_INT, win_M1);
 
         delete_matrix(M11);
         delete_matrix(M12);
@@ -177,7 +160,7 @@ void mpi_strassen(int **A, int **B, int **C, int n, int m, int p, int rank) {
         matrix_sub(B12, B22, M32, m1, p1);
         omp_strassen(A11, M32, M3, n1, m1, p1);
         MPI_Put(&M3[0][0], c_sub_size, MPI_INT, 0, 0, c_sub_size, MPI_INT, win_M3);
-        // calcualte M6
+        // calculate M6
         matrix_sub(A21, A11, M61, n1, m1);
         matrix_add(B11, B12, M62, m1, p1);
         omp_strassen(M61, M62, M6, n1, m1, p1);
