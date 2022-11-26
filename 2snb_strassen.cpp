@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
     if(comm_size != 4) {
         printf("This application is meant to be run with 4 MPI processes, not %d.\n", comm_size);
-        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
     // get rank
     int rank;
