@@ -1,7 +1,6 @@
 #include "bits/stdc++.h"
 #include "matrix.hpp"
-
-using namespace std::chrono;
+#include "time.h"
 
 void check_correctness(int** A, int** B, int** C, int n, int m, int p) {
     int** D = new_matrix(n, p);
@@ -168,14 +167,12 @@ int main() {
 
     int **c = new_matrix(n, p);
 
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-
-    double elapsed_seconds;
-    start = std::chrono::system_clock::now();
+    clock_t start, end;
+    start = clock();
     strassen(a, b, c, n, m, p);
-    end = std::chrono::system_clock::now();
-    elapsed_seconds = duration_cast<microseconds> (end - start).count() * pow(10, -6);
-    fout << "naive " << n << ' ' << m << ' ' << p << ": " << elapsed_seconds << '\n';
+    end = clock();
+    double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    fout << "naive " << n << ' ' << m << ' ' << p << ": " << cpu_time_used << '\n';
     
     // check_correctness(a, b, c, n, m, p);
     fout.close();
